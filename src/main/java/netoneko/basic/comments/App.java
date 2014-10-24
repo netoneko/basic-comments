@@ -11,61 +11,38 @@ import java.sql.SQLException;
 import static spark.Spark.*;
 
 class App {
-    private static Dao<Comment, String> commentDao;
+    public static Dao<Comment, String> commentDao;
     private static final JsonTransformer jsonTransformer = new JsonTransformer();
 
-    public static void dbInit() throws SQLException {
-        String databaseUrl = "jdbc:postgresql://localhost/basic_comments?user=comments&password=comments&charSet=utf8";
-        ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl);
-        commentDao = DaoManager.createDao(connectionSource, Comment.class);
-        TableUtils.createTable(connectionSource, Comment.class);
-    }
+    public static void initializeDatabase() {
+        try {
+            String databaseUrl = "jdbc:postgresql://localhost/basic_comments?user=comments&password=comments&charSet=utf8";
+            ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl);
+            commentDao = DaoManager.createDao(connectionSource, Comment.class);
+            TableUtils.createTableIfNotExists(connectionSource, Comment.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
 
-    private static class Error {
-        private final String status = "error";
-    }
+            /**
+             * There is a bug that still tries to create a sequence even if it exists
+             */
+            if (e.getCause() instanceof SQLException) {
+                final String sqlState = ((SQLException) e.getCause()).getSQLState();
+                if ("42P07".equals(sqlState)) {
+                    System.err.println("Ignore sequence creation errors");
+                    return;
+                }
+            }
 
-    private static class OK {
-        private final String status = "ok";
+            System.exit(-1);
+        }
     }
 
     public static void main(String[] args) {
-        try {
-            dbInit();
-        } catch (SQLException e) {
-            e.printStackTrace();
-//            System.exit(-1);
-        }
+        initializeDatabase();
 
-        get("/", (req, res) -> {
-            res.type("application/json");
-            return new OK();
-        }, jsonTransformer);
-
-        get("/api/comments", (req, res) -> {
-            res.type("application/json");
-            try {
-                return commentDao.queryForAll();
-            } catch (SQLException e) {
-                e.printStackTrace();
-                res.status(500);
-                return new Error();
-            }
-        }, jsonTransformer);
-
-        post("/api/comments", (req, res) -> {
-            res.type("application/json");
-
-            try {
-                final String text = req.queryParams("text");
-                final Comment comment = new Comment(text);
-                commentDao.create(comment);
-                return comment;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                res.status(500);
-                return new Error();
-            }
-        }, jsonTransformer);
+        get("/health", Actions.health, jsonTransformer);
+        get("/api/comments", Actions.API.index, jsonTransformer);
+        post("/api/comments", Actions.API.create, jsonTransformer);
     }
 }
