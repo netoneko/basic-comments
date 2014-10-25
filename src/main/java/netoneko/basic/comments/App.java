@@ -6,7 +6,9 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import static spark.Spark.*;
 
@@ -16,7 +18,8 @@ class App {
 
     public static void initializeDatabase() {
         try {
-            String databaseUrl = "jdbc:postgresql://localhost/basic_comments?user=comments&password=comments&charSet=utf8";
+            String databaseUrl = Configuration.getProperty("databaseUrl");
+            System.out.println(databaseUrl);
             ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl);
             commentDao = DaoManager.createDao(connectionSource, Comment.class);
             TableUtils.createTableIfNotExists(connectionSource, Comment.class);
