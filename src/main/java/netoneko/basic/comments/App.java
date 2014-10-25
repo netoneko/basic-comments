@@ -18,9 +18,7 @@ class App {
 
     public static void initializeDatabase() {
         try {
-            String databaseUrl = Configuration.getProperty("databaseUrl");
-            System.out.println(databaseUrl);
-            ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl);
+            ConnectionSource connectionSource = new JdbcConnectionSource(Configuration.getProperty("databaseUrl"));
             commentDao = DaoManager.createDao(connectionSource, Comment.class);
             TableUtils.createTableIfNotExists(connectionSource, Comment.class);
         } catch (SQLException e) {
