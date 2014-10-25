@@ -47,7 +47,7 @@ public class AppTest {
 
     private TestResponse request(String method, String path) {
         try {
-            URL url = new URL("http://localhost:4567" + path);
+            URL url = new URL("http://127.0.0.1:4567" + path);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(method);
             connection.setDoOutput(true);
