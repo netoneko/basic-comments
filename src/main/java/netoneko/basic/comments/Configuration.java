@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class Configuration {
-    public static String ENV = System.getenv("JAVA_ENV") != null ? System.getenv("JAVA_ENV") : "development";
     private static final Properties config = new Properties();
 
     public static Properties getConfiguration() {
@@ -22,7 +21,7 @@ public class Configuration {
     }
 
     public static String getProperty(String key) {
-        return getConfiguration().getProperty(ENV + "." + key);
+        return getConfiguration().getProperty(key);
     }
 
 }

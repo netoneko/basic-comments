@@ -26,7 +26,6 @@ import java.util.HashMap;
 public class AppTest {
     @BeforeClass
     public static void beforeClass() {
-        Configuration.ENV = "test";
         App.main(null);
     }
 
